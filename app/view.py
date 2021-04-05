@@ -1,6 +1,7 @@
-from app import app
+from app import api, resource
 
-@app.route('/')
-def home():
-   return "hello world!"
 
+@api.route('/hello')
+class HelloWorld(resource):
+    def get(self):
+        return {'hello': 'world'}
