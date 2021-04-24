@@ -1,0 +1,20 @@
+version: "3"
+services:
+  postgres:
+    image: postgres:11
+    ports:
+      - "8001:5432"
+    environment:
+      - POSTGRES_USER=lukum
+      - POSTGRES_PASSWORD=lukum
+      - POSTGRES_DB=lukum
+  fpi:
+    build: .
+    volumes:
+      - .:/code
+    ports:
+      - "8000:80"
+    depends_on:
+      - postgres
+    tty: true
+    stdin_open: true

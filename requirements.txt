@@ -1,3 +1,0 @@
-Flask>=0.8
-Werkzeug==0.16.1
-flask-restplus

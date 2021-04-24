@@ -1,6 +1,11 @@
-FROM tiangolo/uwsgi-nginx-flask:python3.6-alpine3.7
-RUN apk --update add bash nano
-ENV STATIC_URL /static
-ENV STATIC_PATH /var/www/app/static
-COPY ./requirements.txt /var/www/requirements.txt
-RUN pip install -r /var/www/requirements.txt
+# Pull base image
+FROM python:3.7
+# Set environment varibles
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+WORKDIR /code/
+# Install dependencies
+RUN pip install pyhumps fastapi uvicorn sqlalchemy psycopg2
+COPY . /code/
+EXPOSE 8000
+CMD ["python", "main.py"]
