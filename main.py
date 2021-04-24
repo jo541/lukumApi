@@ -65,7 +65,8 @@ async def create_leader_board(leader_board: LeaderBoardSchema, db: Session = Dep
 @app.get("/leader_board/", response_model=List[LeaderBoardSchema])
 async def get_leader_board(db: Session = Depends(get_db)):
     _leader_board = db.query(LeaderBoard).all()
-    return _leader_board
+
+    return [{'name': lb.name, 'score':lb.score } for lb in _leader_board]
 
 
 if __name__ == "__main__":
