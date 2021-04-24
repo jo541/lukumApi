@@ -1,6 +1,6 @@
 import uvicorn
 
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from typing import List
 from pydantic import BaseModel
 from sqlalchemy import create_engine, Column, Integer, String
@@ -43,7 +43,12 @@ app = FastAPI()
 
 
 class LeaderBoardSchema(BaseModel):
+    id: int
     name: str
+    score: int
+
+
+class LeaderBoardUpdateSchema(BaseModel):
     score: int
 
 
@@ -53,20 +58,40 @@ class Config:
 
 @app.post("/leader_board/", response_model=LeaderBoardSchema)
 async def create_leader_board(leader_board: LeaderBoardSchema, db: Session = Depends(get_db)):
+    name = leader_board.name.strip().upper() if leader_board.name else "ANONYMOUS"
+    _leader_board = db.query(LeaderBoard).filter_by(name=name.strip().upper()).first()
+    if _leader_board:
+        raise HTTPException(status_code=500, detail="User already exist with  this name")
     _leader_board = LeaderBoard(
-        name=leader_board.name, score=leader_board.score
+        name=name, score=leader_board.score
     )
     db.add(_leader_board)
     db.commit()
     db.refresh(_leader_board)
-    return {"name": leader_board.name, "score": leader_board.score}
+    return {"id": leader_board.id, "name": leader_board.name, "score": leader_board.score}
+
+
+@app.post("/leader_board/{board_id}", response_model=LeaderBoardUpdateSchema)
+async def create_leader_board(board_id: int, leader_board: LeaderBoardUpdateSchema, db: Session = Depends(get_db)):
+    _leader_board = db.query(LeaderBoard).filter_by(id=board_id).first()
+    _leader_board.score = leader_board.score
+    db.commit()
+    db.refresh(_leader_board)
+    return {"id": _leader_board.id, "score": _leader_board.score}
 
 
 @app.get("/leader_board/", response_model=List[LeaderBoardSchema])
 async def get_leader_board(db: Session = Depends(get_db)):
     _leader_board = db.query(LeaderBoard).all()
+    return [{"id": lb.id, 'name': lb.name, 'score': lb.score} for lb in _leader_board]
 
-    return [{'name': lb.name, 'score':lb.score } for lb in _leader_board]
+
+@app.get("/leader_board/{name}", response_model=LeaderBoardSchema)
+async def get_leader_board_name(name: str, db: Session = Depends(get_db)):
+    _leader_board = db.query(LeaderBoard).filter_by(name=name.strip().upper()).first()
+    if not _leader_board:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"id": _leader_board.id, 'name': _leader_board.name, 'score': _leader_board.score}
 
 
 if __name__ == "__main__":
