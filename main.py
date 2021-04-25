@@ -51,12 +51,12 @@ class LeaderBoardSchema(BaseModel):
 class LeaderBoardUpdateSchema(BaseModel):
     score: int
 
+class LeaderBoardsSchema(BaseModel):
+    lead_boards: list
 
 class Config:
     orm_mode = True
 
-def return_result(data):
-    return {'results':data}
 
 @app.post("/leader_board/", response_model=LeaderBoardSchema)
 async def create_leader_board(leader_board: LeaderBoardSchema, db: Session = Depends(get_db)):
@@ -70,7 +70,7 @@ async def create_leader_board(leader_board: LeaderBoardSchema, db: Session = Dep
     db.add(_leader_board)
     db.commit()
     db.refresh(_leader_board)
-    return return_result({"id": leader_board.id, "name": leader_board.name, "score": leader_board.score})
+    return {"id": leader_board.id, "name": leader_board.name, "score": leader_board.score}
 
 
 @app.post("/leader_board/{board_id}", response_model=LeaderBoardUpdateSchema)
@@ -79,13 +79,13 @@ async def create_leader_board(board_id: int, leader_board: LeaderBoardUpdateSche
     _leader_board.score = leader_board.score
     db.commit()
     db.refresh(_leader_board)
-    return return_result({"id": _leader_board.id, "score": _leader_board.score})
+    return {"id": _leader_board.id, "score": _leader_board.score}
 
 
-@app.get("/leader_board/", response_model=List[LeaderBoardSchema])
+@app.get("/leader_board/", response_model=LeaderBoardsSchema)
 async def get_leader_board(db: Session = Depends(get_db)):
     _leader_board = db.query(LeaderBoard).all()
-    return return_result([{"id": lb.id, 'name': lb.name, 'score': lb.score} for lb in _leader_board])
+    return {"lead_boards":[{"id": lb.id, 'name': lb.name, 'score': lb.score} for lb in _leader_board]}
 
 
 @app.get("/leader_board/{name}", response_model=LeaderBoardSchema)
@@ -93,7 +93,7 @@ async def get_leader_board_name(name: str, db: Session = Depends(get_db)):
     _leader_board = db.query(LeaderBoard).filter_by(name=name.strip().upper()).first()
     if not _leader_board:
         raise HTTPException(status_code=404, detail="User not found")
-    return return_result({"id": _leader_board.id, 'name': _leader_board.name, 'score': _leader_board.score})
+    return {"id": _leader_board.id, 'name': _leader_board.name, 'score': _leader_board.score}
 
 
 if __name__ == "__main__":
