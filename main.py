@@ -47,6 +47,9 @@ class LeaderBoardSchema(BaseModel):
     name: str
     score: int
 
+class LeaderBoardCreateSchema(BaseModel):
+    name: str
+    score: int
 
 class LeaderBoardUpdateSchema(BaseModel):
     score: int
@@ -58,8 +61,8 @@ class Config:
     orm_mode = True
 
 
-@app.post("/leader_board/", response_model=LeaderBoardSchema)
-async def create_leader_board(leader_board: LeaderBoardSchema, db: Session = Depends(get_db)):
+@app.post("/leader_board/", response_model=LeaderBoardCreateSchema)
+async def create_leader_board(leader_board: LeaderBoardCreateSchema, db: Session = Depends(get_db)):
     name = leader_board.name.strip().upper() if leader_board.name else "ANONYMOUS"
     _leader_board = db.query(LeaderBoard).filter_by(name=name.strip().upper()).first()
     if _leader_board:
@@ -73,7 +76,7 @@ async def create_leader_board(leader_board: LeaderBoardSchema, db: Session = Dep
     return {"id": leader_board.id, "name": leader_board.name, "score": leader_board.score}
 
 
-@app.post("/leader_board/{board_id}", response_model=LeaderBoardUpdateSchema)
+@app.patch("/leader_board/{board_id}", response_model=LeaderBoardUpdateSchema)
 async def create_leader_board(board_id: int, leader_board: LeaderBoardUpdateSchema, db: Session = Depends(get_db)):
     _leader_board = db.query(LeaderBoard).filter_by(id=board_id).first()
     _leader_board.score = leader_board.score
