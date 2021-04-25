@@ -73,7 +73,7 @@ async def create_leader_board(leader_board: LeaderBoardCreateSchema, db: Session
     db.add(_leader_board)
     db.commit()
     db.refresh(_leader_board)
-    return {"id": leader_board.id, "name": leader_board.name, "score": leader_board.score}
+    return {"name": leader_board.name, "score": leader_board.score}
 
 
 @app.patch("/leader_board/{board_id}", response_model=LeaderBoardUpdateSchema)
